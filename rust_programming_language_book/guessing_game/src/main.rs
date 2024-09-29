@@ -1,5 +1,6 @@
 use rand::Rng;
 use std::io::{ self, BufRead, Error };
+use std::cmp::Ordering;
 
 fn main() -> Result<(), Error> {
     let mut rng = rand::thread_rng();
@@ -17,26 +18,32 @@ fn main() -> Result<(), Error> {
         let user_guess_int = match user_guess.trim().parse::<i32>() {
             Ok(int) => int,
             Err(e) => {
-                return Err(io::Error::new(io::ErrorKind::InvalidInput, e));
+                println!("guess again...");
+                user_guess.clear();
+                continue;
+                // return Err(io::Error::new(io::ErrorKind::InvalidInput, e));
             }
         };
         println!("user guess string: {}", &user_guess);
         println!("user guess parsed: {}", &user_guess_int);
 
-        if user_guess_int == rand_num {
-            break;
-        } else if user_guess_int > rand_num {
-            user_guess.clear();
-            println!("incorrect, the target number is lower than your guess. guess again...");
-            stdin.read_line(&mut user_guess)?;
-        } else if user_guess_int < rand_num {
-            user_guess.clear();
-            println!("incorrect, the target number is higher than your guess. guess again...");
-            stdin.read_line(&mut user_guess)?;
+        match user_guess_int.cmp(&rand_num) {
+            Ordering::Equal => {
+                println!("huzzah! you guessed correctly. the target number was {:?}", &rand_num);
+                break;
+            }
+            Ordering::Greater => {
+                println!("incorrect, the target number is lower than your guess. guess again...");
+                continue;
+            }
+            Ordering::Less => {
+                println!("incorrect, the target number is higher than your guess. guess again...");
+                continue;
+            }
         }
-    }
 
-    println!("huzzah! you guessed correctly. the target number was {:?}", &rand_num.to_string());
+     
+    }
 
     Ok(())
 }
